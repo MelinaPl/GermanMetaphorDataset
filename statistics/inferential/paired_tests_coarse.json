@@ -1,0 +1,68 @@
+{
+   "METAPHOR": {
+      "human_vs_gpt3-5": {
+         "wilcoxon": {
+            "p_value": 0.083984375,
+            "t_stat": 10.0
+         },
+         "paired_t_test": {
+            "p_value": 0.0534590212801994,
+            "t_stat": -2.2212025566748226
+         }
+      },
+      "human_vs_gpt4o": {
+         "wilcoxon": {
+            "p_value": 0.048828125,
+            "t_stat": 8.0
+         },
+         "paired_t_test": {
+            "p_value": 0.035034787872008914,
+            "t_stat": -2.4792454283305245
+         }
+      }
+   },
+   "DFMA": {
+      "human_vs_gpt3-5": {
+         "wilcoxon": {
+            "p_value": 0.6001794871405538,
+            "t_stat": 8.0
+         },
+         "paired_t_test": {
+            "p_value": 0.3833168240571928,
+            "t_stat": 0.916477885160399
+         }
+      },
+      "human_vs_gpt4o": {
+         "wilcoxon": {
+            "p_value": 0.779434528427275,
+            "t_stat": 16.0
+         },
+         "paired_t_test": {
+            "p_value": 0.7928429479506511,
+            "t_stat": -0.2705451050200959
+         }
+      }
+   },
+   "O": {
+      "human_vs_gpt3-5": {
+         "wilcoxon": {
+            "p_value": 0.10546875,
+            "t_stat": 11.0
+         },
+         "paired_t_test": {
+            "p_value": 0.06465873429177203,
+            "t_stat": 2.1043635996406964
+         }
+      },
+      "human_vs_gpt4o": {
+         "wilcoxon": {
+            "p_value": 0.037109375,
+            "t_stat": 6.5
+         },
+         "paired_t_test": {
+            "p_value": 0.037206733318025376,
+            "t_stat": 2.4425817871215636
+         }
+      }
+   }
+}

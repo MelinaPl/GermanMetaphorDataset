@@ -1,0 +1,23 @@
+{
+    "human": {
+        "unique_lemmas": 81.93,
+        "gpt35_human": 9.56,
+        "gpt4o_human": 11.03,
+        "human_all": 22.06,
+        "exclusive_human": 57.35
+    },
+    "gpt3-5": {
+        "unique_lemmas": 59.67,
+        "gpt35_human": 8.97,
+        "gpts": 22.76,
+        "gpt35_all": 20.69,
+        "exclusive_gpt35": 47.59
+    },
+    "gpt4o": {
+        "unique_lemmas": 65.86,
+        "gpt4o_human": 9.15,
+        "gpts": 20.12,
+        "gpt4o_all": 18.29,
+        "exclusive_gpt4o": 52.44
+    }
+}
