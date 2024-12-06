@@ -26,6 +26,15 @@ the most suitable.
 """
 
 def detect_summaries_human(human_sample, write_to_file=False):
+    """
+    human_sample : str.
+        File containing human written articles ('human_100n.json')
+    write_to_file (optional) : Boolean.
+        Whether results should be written to JSON. Default is False.
+    ----------------------------
+    Searches for the human written summary in the article text.
+    Only returns true for exact string matches.
+    """
     data = pd.read_json(f"{JSON_DATA_DIR}/{human_sample}")
     contains_summary = []
     for key in data:
@@ -53,6 +62,18 @@ def detect_summaries_human(human_sample, write_to_file=False):
 
 
 def detect_summaries_gpt(human_sample, gpt_sample, write_to_file=False):
+    """
+    human_sample : str.
+        File containing human written articles ('human_100n.json')
+    gpt_sample : str.
+        File containing prompt data of GPT (either 'gpt-3.5-turbo-0125_100n_170+words.csv'
+        or 'gpt-4o-2024-05-13_100n.csv').
+    write_to_file (optional) : Boolean.
+        Whether results should be written to JSON. Default is False.
+    ----------------------------
+    Searches for the human written summary in the article text.
+    Only returns true for exact string matches.
+    """
     data = pd.read_json(f"{JSON_DATA_DIR}/{human_sample}")
     gpt_data = pd.read_csv(f"{PROMPT_DATA_DIR}/{gpt_sample}")
     contains_summary = []
@@ -81,6 +102,15 @@ def detect_summaries_gpt(human_sample, gpt_sample, write_to_file=False):
     
 
 def get_average_length_across_prompts(human_sample, version):
+    """
+    human_sample : str.
+        File containing human written articles ('human_100n.json')
+    version : str.
+        Whether 'human', 'gpt-3.5-turbo-0125_100n_170+words.csv' or 
+        'gpt-4o-2024-05-13_100n.csv'
+    ----------------------------
+    Prints descriptive statistics for text length. 
+    """
     if version == "human":
         data = pd.read_json(f"{JSON_DATA_DIR}/{human_sample}")
         word_count_column = [data[key]["word_count"] for key in data]
@@ -92,6 +122,17 @@ def get_average_length_across_prompts(human_sample, version):
 
     
 def filter_gpt_articles(gpt_sample, additional_words, write_to_file=True):
+    """
+    gpt_sample : str.
+        File containing prompt data of GPT (either 'gpt-3.5-turbo-0125_100n_170+words.csv'
+        or 'gpt-4o-2024-05-13_100n.csv').
+    additional_words : Boolean.
+        Whether 170 words were added to the word count (concerns GPT-3.5)
+    write_to_file (optional) : Boolean.
+        Whether results should be written to JSON. Default is True.
+    ----------------------------
+    Filters GPT articles based on text length, whether the summary is contained, and language.   
+    """
     different_length, different_language, contains_summary = [], [], []
     gpt_data = pd.read_csv(f"{PROMPT_DATA_DIR}/{gpt_sample}")
     summary_data = pd.read_json(f"{JSON_DATA_DIR}/{gpt_sample.replace('.csv', '')}_summaries.json")
@@ -124,6 +165,15 @@ def filter_gpt_articles(gpt_sample, additional_words, write_to_file=True):
     print(f"Removed due to summary: {len(contains_summary)}")
 
 def find_duplicates(human_sample, gpt_sample):
+    """
+    human_sample : str.
+        File containing human written articles ('human_100n.json')
+    gpt_sample : str.
+        File containing prompt data of GPT (either 'gpt-3.5-turbo-0125_100n_170+words.csv'
+        or 'gpt-4o-2024-05-13_100n.csv').
+    ----------------------------
+    Checks for duplicate sentences between human original and GPT written article.   
+    """
     model = SentenceTransformer('distiluse-base-multilingual-cased-v1')
     gpt_data = pd.read_csv(f"{PROMPT_DATA_DIR}/{gpt_sample}")
     human_data = pd.read_json(f"{JSON_DATA_DIR}/{human_sample}")
@@ -149,9 +199,22 @@ def find_duplicates(human_sample, gpt_sample):
 
 
 def get_similarity_scores(human_sample, gpt_sample, write_to_file=True): # values for version: gpt-3.5-turbo, gpt-4o
+    """
+    human_sample : str.
+        File containing human written articles ('human_100n.json')
+    gpt_sample : str.
+        File containing prompt data of GPT (either 'gpt-3.5-turbo-0125_100n_170+words.csv'
+        or 'gpt-4o-2024-05-13_100n.csv').
+    write_to_file (optional) : Boolean.
+        Whether results should be written to JSON. Default is True.
+    ----------------------------
+    Calculates the similarity scores between human original and GPT written
+    equivalent and returns a dataframe containing the article urls, prompt ids
+    and similarity scores.
+    """
     df_human = pd.read_json(f"{JSON_DATA_DIR}/{human_sample}")
     df_gpt = pd.read_csv(f"{PROMPT_DATA_DIR}/{gpt_sample}")
-    model = SentenceTransformer('aari1995/German_Semantic_V3b') #jinaai/jina-embeddings-v2-base-de
+    model = SentenceTransformer('aari1995/German_Semantic_V3b')
     sim_scores = {}
     for gpt_text, article_url, p_id in tqdm(zip(df_gpt["response"], df_gpt["article_url"], df_gpt["p_id"])):
         embeddings = model.encode([df_human[article_url]["text"], gpt_text])
@@ -159,11 +222,23 @@ def get_similarity_scores(human_sample, gpt_sample, write_to_file=True): # value
         sim_scores[f"{article_url}_{p_id}"] = {"sim_score" : sim_score, "article_url": article_url, "p_id" : p_id}
     sim_scores_df = pd.DataFrame(sim_scores)
     if write_to_file:
-        sim_scores_df.to_json(f"{JSON_DATA_DIR}/{gpt_sample.replace('.csv', '')}_similaritiesv3.json", force_ascii=False)
+        sim_scores_df.to_json(f"{JSON_DATA_DIR}/{gpt_sample.replace('.csv', '')}_similarities.json", force_ascii=False)
     return sim_scores_df
 
 
 def get_similarity_statistics(gpt_sample, similarity_file):
+    """
+    gpt_sample : str.
+        File containing prompt data of GPT (either 'gpt-3.5-turbo-0125_100n_170+words.csv'
+        or 'gpt-4o-2024-05-13_100n.csv').
+    similarity_file : str.
+        File containing the corresponding similarity scores (either 
+        'gpt-3.5-turbo-0125_100n_170+words_similarities.json' or 
+        'gpt-4o-2024-05-13_100n_similarities.json')
+    ----------------------------
+    Merges GPT generated article data with similarity scores and prints
+    descriptive statistics.
+    """
     df_gpt = pd.read_csv(f"{PROMPT_DATA_DIR}/{gpt_sample}")
     similarities = pd.read_json(f"{JSON_DATA_DIR}/{similarity_file}")
     similarities_column = []
@@ -175,8 +250,18 @@ def get_similarity_statistics(gpt_sample, similarity_file):
     return df_gpt
 
 def get_overall_similarity_statistics(gpt_sample1, gpt_sample2):
-    df_gpt1 = get_similarity_statistics(f"{gpt_sample1}", f"{gpt_sample1.replace('.csv','')}_similaritiesv3b.json")
-    df_gpt2 = get_similarity_statistics(f"{gpt_sample2}", f"{gpt_sample2.replace('.csv','')}_similaritiesv3b.json")
+    """
+    gpt_sample1 : str.
+        First file containing prompt data of GPT (either 'gpt-3.5-turbo-0125_100n_170+words.csv'
+        or 'gpt-4o-2024-05-13_100n.csv').
+    gpt_sample2 : str.
+        Second file containing prompt data of GPT (either 'gpt-3.5-turbo-0125_100n_170+words.csv'
+        or 'gpt-4o-2024-05-13_100n.csv').
+    ----------------------------
+    Prints descriptive statistis for merged (overall) GPT data.
+    """
+    df_gpt1 = get_similarity_statistics(f"{gpt_sample1}", f"{gpt_sample1.replace('.csv','')}_similarities.json")
+    df_gpt2 = get_similarity_statistics(f"{gpt_sample2}", f"{gpt_sample2.replace('.csv','')}_similarities.json")
     merged_df = df_gpt1._append(df_gpt2, ignore_index=True)
     print(merged_df[["p_id", "sim_scores" ]].groupby("p_id").describe().T.to_latex())   
 
@@ -210,8 +295,8 @@ if __name__ == '__main__':
     get_similarity_scores("human_100n.json","gpt-4o-2024-05-13_100n.csv", write_to_file=True) # ChatGPT-4o
 
     #### Print similarity scores for one model across prompts
-    get_similarity_statistics("gpt-3.5-turbo-0125_100n_170+words.csv", "gpt-3.5-turbo-0125_100n_170+words_similaritiesv3b.json") # ChatGPT-3.5
-    get_similarity_statistics("gpt-4o-2024-05-13_100n.csv", "gpt-4o-2024-05-13_100n_similaritiesv3b.json") # ChatGPT-4o
+    get_similarity_statistics("gpt-3.5-turbo-0125_100n_170+words.csv", "gpt-3.5-turbo-0125_100n_170+words_similarities.json") # ChatGPT-3.5
+    get_similarity_statistics("gpt-4o-2024-05-13_100n.csv", "gpt-4o-2024-05-13_100n_similarities.json") # ChatGPT-4o
 
     #### Print similarity scores for both models across prompts
     get_overall_similarity_statistics("gpt-4o-2024-05-13_100n.csv", "gpt-3.5-turbo-0125_100n_170+words.csv")
