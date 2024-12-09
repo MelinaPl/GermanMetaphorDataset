@@ -8,8 +8,20 @@ from pathlib import Path
 import ast
 pd.options.mode.chained_assignment = None
 
+"""
+This file is used to process the annotated documents from INCEpTION
+in WebAnno TSV 3 format and transforms them into CSV files.
+"""
 
 def annotation_iterator(anno_zipfile): # build iterator
+    """
+    anno_zipfile : str.
+        Zip-file that contains all final annotations 
+        ('final_curated_docs_tsv.zip')
+    ---------------------------
+    Iterator that yields final dataframes for each TSV file
+    contained in the Zip-file.
+    """
     archive = ZipFile(f"{ANNO_DIR}/{anno_zipfile}", 'r')
     files = [name for name in archive.namelist()]
     archive.extractall(path=ANNO_DIR)
@@ -24,6 +36,13 @@ def annotation_iterator(anno_zipfile): # build iterator
             yield annotations, mflag_df
 
 def extract_mflag(file):
+    """
+    file : str.
+        TSV file containing annotations for one article.
+    ---------------------------
+    Returns extracted metaphor flags as pandas dataframe. 
+    Returns None if file does not contain any mflags.
+    """
     potentially_nonexistent = ["relation", "rel_id", "MetaphorFlag"]
     doc_id = file.split("/")
     doc_id = doc_id[1].replace(".xmi", "")
@@ -92,16 +111,32 @@ def extract_mflag(file):
     return mflag_df
 
 def complex_column(char_id, metaphor):
+    """
+    char_id : str.
+        Character indices of complex metaphor.
+    metaphor : str.
+        Type of metaphor.
+    ---------------------------
+    Returns 0 if row does not contain complex metaphor.
+    Otherwise returns the number of elements contained in complex 
+    metaphor.
+    """
     if metaphor == 'KOMPL':
         try:
-            elements = ast.literal_eval(char_id)
+            elements = ast.literal_eval(char_id) # check if char_ids are in list format
             if isinstance(elements, list):
-                return len(elements)
+                return len(elements) # return number of elements contained in complex metaphor
         except (ValueError, SyntaxError):
-            return 1
-    return 0
+            return 1 # complex metaphor containing only one element
+    return 0 # no complex metaphor
 
 def handle_compounds(annotation_df):
+    """
+    annotation_df : pandas Dataframe.
+        Pandas dataframe containing metaphor and conventionality annotations.
+    ---------------------------
+    Returns a pandas dataframe that supports compounds.
+    """
     whole_compound_ids, compound_ids = [], []
     for idx in annotation_df["s_id"].values: 
         if "." in idx:
@@ -119,6 +154,12 @@ def handle_compounds(annotation_df):
     return annotation_df
 
 def handle_verbs(annotation_df):
+    """
+    annotation_df : pandas Dataframe.
+        Pandas dataframe containing metaphor and conventionality annotations.
+    ---------------------------
+    Returns a pandas dataframe that supports verbs which have been split up.
+    """
     pairs = []
     for idx, relation, rel_id, metaphor in zip(annotation_df["s_id"].values, annotation_df["relation"].values, annotation_df["rel_id"].values, annotation_df["metaphor"].values): 
         if relation == "belong together":
@@ -143,6 +184,12 @@ def handle_verbs(annotation_df):
     return annotation_df
 
 def handle_complex_metaphors(annotation_df): # have directed relationships (left to right)
+    """
+    annotation_df : pandas Dataframe.
+        Pandas dataframe containing metaphor and conventionality annotations.
+    ---------------------------
+    Returns a pandas dataframe that supports complex metaphors.
+    """
     pairs = []
     for idx, relation, rel_id, metaphor in zip(annotation_df["s_id"].values, annotation_df["relation"].values, annotation_df["rel_id"].values, annotation_df["metaphor"].values): 
         if relation == "belong together":
@@ -152,7 +199,7 @@ def handle_complex_metaphors(annotation_df): # have directed relationships (left
     complex_metaphor_pairs = []
     for pair in pairs:
         all_values = []
-        if pair[0] == previous_pair[-1]:
+        if pair[0] == previous_pair[-1]: # check if first element was already in previous pair
             all_values.extend(previous_pair)
             all_values.append(pair[1])
             complex_metaphor_pairs.append(all_values)
@@ -165,23 +212,23 @@ def handle_complex_metaphors(annotation_df): # have directed relationships (left
         # Check if current_list is a sublist of any list in the result
         if not any(set(current_list).issubset(set(existing)) for existing in cleaned_list):
             cleaned_list.append(current_list)
-    for metaphor in cleaned_list:
+    for metaphor in cleaned_list: # Iterate through final list
         new_data = {}
         pos_tags, texts, char_ids = [], [], []
         int_metaphor = [int(ele.replace("-","")) for ele in metaphor]
         assert int_metaphor == sorted(int_metaphor) # Check if order actually is maintained
-        for part in metaphor:
+        for part in metaphor: # get data
             pos = annotation_df.loc[annotation_df['s_id'] == part, 'pos'].values[0]
             text = annotation_df.loc[annotation_df['s_id'] == part, 'text'].values[0]
             char_id = annotation_df.loc[annotation_df['s_id'] == part, 'char_id'].values[0]
             pos_tags.append(pos)
             texts.append(text)
             char_ids.append(char_id)
-        new_data["text"] = f"{texts}"
-        new_data["pos"] = f"{pos_tags}"
-        new_data["char_id"] = f"{char_ids}"
-        annotation_df.loc[annotation_df["s_id"] == metaphor[0], new_data.keys()] = new_data.values()
-        for part in metaphor[1:]:
+        new_data["text"] = f"{texts}" # merge texts
+        new_data["pos"] = f"{pos_tags}" # merge pos-tags
+        new_data["char_id"] = f"{char_ids}" # merge char_ids
+        annotation_df.loc[annotation_df["s_id"] == metaphor[0], new_data.keys()] = new_data.values() # write line with complex metaphor
+        for part in metaphor[1:]: # delete rows containing parts of the complex metaphor
             annotation_df = annotation_df.loc[annotation_df["s_id"] != part]
     annotation_df["complex"] = annotation_df.apply(lambda row: complex_column(row['char_id'], row['metaphor']), axis=1)
 
@@ -189,6 +236,13 @@ def handle_complex_metaphors(annotation_df): # have directed relationships (left
 
 
 def read_webanno(tsv_file):
+    """
+    tsv_file : str.
+        Name of TSV file containing annotations for one article.
+    ------------------------
+    Returns a pandas dataframe of the metaphor and conventionality annotations
+    contained in the TSV file.
+    """
     potentially_nonexistent = ["relation", "rel_id", "MetaphorFlag"]
     doc_id = tsv_file.split("/")
     doc_id = doc_id[1].replace(".xmi", "")
@@ -272,7 +326,6 @@ if __name__ == '__main__':
     mapping_human = pd.read_csv(f"{MAPPING_DIR}/mapping_human.csv", sep=",", encoding="utf8")
     
     #### Process files
-    read_webanno("curation/d5c938f5-1a53-421f-981d-ac432ef868b3.xmi/CURATION_USER16724183253005124917.tsv")
     all_annotations = []
     all_mflags = []
 
