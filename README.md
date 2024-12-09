@@ -98,8 +98,9 @@ Final file containing metaphor and conventionality annotations in CSV format.
 Example:
 
 
-||s_id|char_id|text|conventionality|metaphor|pos|relation|rel_id|s_text|doc_id|url|gen_version|compound|complex|
-0|1-2|4-21|Bundesgerichtshof|O|O|NN|_|_|Der Bundesgerichtshof (BGH) hat am Donnerstag ein weitreichendes Urteil zur sogenannten Mietpreisbremse gefällt.|8cbb5f5f-b23f-4002-86fb-8ed5884b7b2b,https://www.sueddeutsche.de/politik/urteil-bgh-kippt-mietverordnung-1.4553310_1a|gpt4o|False|0|
+| |s_id|char_id|text|conventionality|metaphor|pos|relation|rel_id|s_text|doc_id|url|gen_version|compound|complex|
+|--|----|-------|----|---------------|--------|---|--------|------|------|------|---|-----------|--------|--------|
+|0|1-2|4-21|Bundesgerichtshof|O|O|NN|_|_|Der Bundesgerichtshof (BGH) hat am Donnerstag ein weitreichendes Urteil zur sogenannten Mietpreisbremse gefällt.|8cbb5f5f-b23f-4002-86fb-8ed5884b7b2b|https://www.sueddeutsche.de/politik/urteil-bgh-kippt-mietverordnung-1.4553310_1a|gpt4o|False|0|
 
 
 #### mflag_dataset.csv
@@ -109,8 +110,9 @@ Final file containing annotations of metaphor flags in CSV format.
 Example:
 
 
-||s_id|char_id|text|MetaphorFlag|conventionality|metaphor|pos|relation|rel_id|s_text|doc_id|url|gen_version|
-|0|1-12|85-88|wie|MFlag|_|_|_|_|_|"Bundesgesundheitsminister Jens Spahn (CDU) möchte Versuche verbieten, Homosexualität wie eine Krankheit zu ""heilen""."|,d5c938f5-1a53-421f-981d-ac432ef868b3|https://www.sueddeutsche.de/politik/konversionstherapie-verbot-spahn-1.4482284|human|
+| |s_id|char_id|text|MetaphorFlag|conventionality|metaphor|pos|relation|rel_id|s_text|doc_id|url|gen_version|
+|--|----|------|----|------------|---------------|--------|---|--------|------|------|------|---|-----------|
+|0|1-12|85-88|wie|MFlag|_|_|_|_|_|"Bundesgesundheitsminister Jens Spahn (CDU) möchte Versuche verbieten, Homosexualität wie eine Krankheit zu ""heilen""."|d5c938f5-1a53-421f-981d-ac432ef868b3|https://www.sueddeutsche.de/politik/konversionstherapie-verbot-spahn-1.4482284|human|
 
 ### prompt_data/
 
