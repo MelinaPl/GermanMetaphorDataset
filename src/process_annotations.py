@@ -338,7 +338,7 @@ if __name__ == '__main__':
     # Write both dataframes to file
     if all_annotations:
         combined_annotations = pd.concat(all_annotations, ignore_index=True)
-        combined_annotations.to_csv(f"{DATA_DIR}/my_final_dataset.csv", encoding="utf8")   
+        combined_annotations.to_csv(f"{DATA_DIR}/metaphor_dataset.csv", encoding="utf8")   
 
     if all_mflags:
         combined_mflag_df = pd.concat(all_mflags, ignore_index=True)
