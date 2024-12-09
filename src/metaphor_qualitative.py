@@ -17,9 +17,6 @@ pd.options.mode.chained_assignment = None
 This script is used to retrieve qualitative results.
 """
 
-
-nlp = spacy.load("de_core_news_md")
-
 def write_frequency_lists(df, gen_type):
     """
     df : pandas Dataframe.
@@ -284,6 +281,9 @@ def unique_lemma_frequency():
     print(results)
 
 def create_lemma_tables():
+    """
+    Creates tables with results and writes them to files.
+    """
     excl_files = [file for file in os.listdir(f"{QUALI_DIR}/exclusive_lemmas")]
     excl_lemmas = {}
     for file in excl_files:
@@ -301,12 +301,12 @@ def create_lemma_tables():
         fill_number = max_len - current_length
         l.extend([""]*fill_number)
     df = pd.DataFrame({"All": all, "GPTs": gpts, "GPT3-5 and Human": g35_h, "GPT4o and Human": g4o_h})
-    df.to_latex(f"{QUALI_DIR}/exlusive_shared_lemmas.tex", index=False)
+    df.to_latex(f"{QUALI_DIR}/tex/exlusive_shared_lemmas.tex", index=False)
     ### Create multi lemma + compound tables
     # Create multi lemma df
-    gpt4o = pd.read_csv(f"{QUALI_DIR}/gpt4o_mostfrequent_multis.csv", encoding="utf8")
-    gpt35 = pd.read_csv(f"{QUALI_DIR}/gpt35_mostfrequent_multis.csv", encoding="utf8")
-    human = pd.read_csv(f"{QUALI_DIR}/human_mostfrequent_multis.csv", encoding="utf8")
+    gpt4o = pd.read_csv(f"{QUALI_DIR}/csv/gpt4o_mostfrequent_multis.csv", encoding="utf8")
+    gpt35 = pd.read_csv(f"{QUALI_DIR}/csv/gpt35_mostfrequent_multis.csv", encoding="utf8")
+    human = pd.read_csv(f"{QUALI_DIR}/csv/human_mostfrequent_multis.csv", encoding="utf8")
     gpt4o = list(gpt4o["Word"].values)   
     gpt35 = list(gpt35["Word"].values)   
     human = list(human["Word"].values)  
@@ -318,9 +318,9 @@ def create_lemma_tables():
         l.extend([""]*fill_number)
     df_multi = pd.DataFrame({"GPT3-5": gpt35, "GPT-4o": gpt4o, "Human": human})
     # Create compound lemma df
-    gpt4o = pd.read_csv(f"{QUALI_DIR}/gpt4o_mostfrequent_compounds.csv", encoding="utf8")
-    gpt35 = pd.read_csv(f"{QUALI_DIR}/gpt35_mostfrequent_compounds.csv", encoding="utf8")
-    human = pd.read_csv(f"{QUALI_DIR}/human_mostfrequent_compounds.csv", encoding="utf8")
+    gpt4o = pd.read_csv(f"{QUALI_DIR}/csv/gpt4o_mostfrequent_compounds.csv", encoding="utf8")
+    gpt35 = pd.read_csv(f"{QUALI_DIR}/csv/gpt35_mostfrequent_compounds.csv", encoding="utf8")
+    human = pd.read_csv(f"{QUALI_DIR}/csv/human_mostfrequent_compounds.csv", encoding="utf8")
     gpt4o = list(gpt4o["Word"].values)   
     gpt35 = list(gpt35["Word"].values)   
     human = list(human["Word"].values)  
@@ -333,7 +333,7 @@ def create_lemma_tables():
     
     df_compounds = pd.DataFrame({"GPT3-5": gpt35, "GPT-4o": gpt4o, "Human": human})
     merged_df = pd.concat([df_multi, df_compounds], axis=0)
-    merged_df.to_latex(f"{QUALI_DIR}/multilemmas_and_compounds.tex", index=False)
+    merged_df.to_latex(f"{QUALI_DIR}/tex/multilemmas_and_compounds.tex", index=False)
 
 
 if __name__ == '__main__':
@@ -341,6 +341,9 @@ if __name__ == '__main__':
     REPO_DIR = str(Path().resolve().parents[0])
     DATA_DIR = os.path.join(REPO_DIR, "data")
     QUALI_DIR = os.path.join(REPO_DIR, "qualitative")
+
+    ####  Load spacy
+    nlp = spacy.load("de_core_news_md")
 
     #### Qualitative analysis
     all_annotations = pd.read_csv(f"{DATA_DIR}/my_final_dataset_metaphors.csv", encoding="utf8")
