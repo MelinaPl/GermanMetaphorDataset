@@ -17,7 +17,17 @@ import json
 from scipy.stats import t, ttest_rel, wilcoxon
 pd.options.mode.chained_assignment = None  # default='warn'
 
+"""
+This script is used to retrieve quantitative results.
+"""
+
 def avg_sentence_length(text):
+    """
+    text : str.
+        String containing the article text.
+    ----------------------
+    Returns the average sentence length per article.
+    """
     doc = nlp(text)
     sentences = list(doc.sents)
     if len(sentences) == 0:
@@ -25,6 +35,11 @@ def avg_sentence_length(text):
     return sum(len(sentence) for sentence in sentences) / len(sentences)
 
 def describe_articles():
+    """
+    Writes two TEX files containing descriptive statistics
+    for number of tokens and sentence length across generation
+    types.
+    """
     files_humans = os.listdir(f"{DATA_DIR}/article_humans")
     files_gpt35 = os.listdir(f"{GPT35_DIR}")
     files_gpt4o = os.listdir(f"{GPT4o_DIR}")
@@ -41,16 +56,20 @@ def describe_articles():
     token_count = df.groupby("gen_type")["tokens"].describe()
     df["sentence_length"] = df["text"].apply(avg_sentence_length)
     sentence_length = df.groupby("gen_type")["sentence_length"].describe()
-    with open(f"{STATISTICS_DIR}/token_stats.tex", "w") as file:
+    with open(f"{STATISTICS_DIR}/tex/token_stats.tex", "w") as file:
         file.write(token_count.to_latex(index=True, float_format="%.2f"))
-    with open(f"{STATISTICS_DIR}/sentence_stats.tex", "w") as file:
+    with open(f"{STATISTICS_DIR}/tex/sentence_stats.tex", "w") as file:
         file.write(sentence_length.to_latex(index=True, float_format="%.2f"))
-
-    
-    
 
 
 def add_relative_freq_genversion(df):
+    """
+    df : pandas Dataframe.
+        Pandas dataframe containing metaphor and 
+        conventionality annotations.
+    -------------------------
+    Adds relative frequencies to dataframe.
+    """
     gpt35 = list(df["gpt3-5"].values)
     gpt4o = list(df["gpt4o"].values)
     human = list(df["human"].values)
@@ -66,6 +85,13 @@ def add_relative_freq_genversion(df):
     return df
 
 def transform_df_to_rel_freq(df):
+    """
+    df : pandas Dataframe.
+        Pandas dataframe containing metaphor and 
+        conventionality annotations.
+    -------------------------
+    Transforms absolute frequencies to relative frequencies.
+    """
     rel_df = df.copy()
     for column_name in rel_df.columns:
         rel_column = []
@@ -77,12 +103,31 @@ def transform_df_to_rel_freq(df):
     return rel_df.transpose()
 
 def descriptive_statistics_mflag(mflags):
+    """
+    mflags : pandas Dataframe.
+        Pandas dataframe containing annotated metaphor 
+        flags.
+    -------------------------
+    Provides descriptive statistics for metaphor flags and writes them
+    to a TEX file.
+    """
     mflag_df = mflags.groupby(['gen_version', 'MetaphorFlag']).size().unstack(fill_value=0).transpose()
     mflag_df = add_relative_freq_genversion(mflag_df)
-    with open(f"{STATISTICS_DIR}/mflags.tex", "w") as file:
+    with open(f"{STATISTICS_DIR}/tex/mflags.tex", "w") as file:
         file.write(mflag_df.to_latex(index=True, float_format="%.2f"))
 
-def descriptive_statistics(annotations, no_dfma=False):
+def descriptive_statistics(annotations, no_dfma=True):
+    """
+    annotations : pandas Dataframe.
+        Pandas dataframe containing annotated metaphors
+        and conventionality.
+    no_dfma (optional) : Boolean.
+        Whether to include or discard the category DFMA.
+        Default is True (= DFMA discarded).
+    -------------------------
+    Provides descriptive statistics for metaphors and conventionality
+    and writes them to TEX files.
+    """
     generations = ["human", "gpt3-5", "gpt4o"]
     if no_dfma:
         annotations = annotations[annotations["metaphor"]!="DFMA"]
@@ -97,18 +142,18 @@ def descriptive_statistics(annotations, no_dfma=False):
         metaphors_per_doc = transform_df_to_rel_freq(metaphors)
         coarse_metaphors = transform_df_to_rel_freq(coarse_metaphors)
         if no_dfma:
-            with open(f"{STATISTICS_DIR}/metaphors_{gen}_per_doc_nodfma.tex", "w") as file:
+            with open(f"{STATISTICS_DIR}/tex/metaphors_{gen}_per_doc_nodfma.tex", "w") as file:
                 file.write(metaphors_per_doc.to_latex(index=True, float_format="%.2f"))
-            with open(f"{STATISTICS_DIR}/metaphors_{gen}_describe_nodfma.tex", "w") as file:
+            with open(f"{STATISTICS_DIR}/tex/metaphors_{gen}_describe_nodfma.tex", "w") as file:
                 file.write(metaphors_per_doc.describe().transpose().to_latex(index=True, float_format="%.2f"))
-            with open(f"{STATISTICS_DIR}/metaphors_{gen}_describe_coarse_nodfma.tex", "w") as file:
+            with open(f"{STATISTICS_DIR}/tex/metaphors_{gen}_describe_coarse_nodfma.tex", "w") as file:
                 file.write(coarse_metaphors.describe().transpose().to_latex(index=True, float_format="%.2f"))
         else:
-            with open(f"{STATISTICS_DIR}/metaphors_{gen}_per_doc.tex", "w") as file:
+            with open(f"{STATISTICS_DIR}/tex/metaphors_{gen}_per_doc.tex", "w") as file:
                 file.write(metaphors_per_doc.to_latex(index=True, float_format="%.2f"))
-            with open(f"{STATISTICS_DIR}/metaphors_{gen}_describe.tex", "w") as file:
+            with open(f"{STATISTICS_DIR}/tex(metaphors_{gen}_describe.tex", "w") as file:
                 file.write(metaphors_per_doc.describe().transpose().to_latex(index=True, float_format="%.2f"))
-            with open(f"{STATISTICS_DIR}/metaphors_{gen}_describe_coarse.tex", "w") as file:
+            with open(f"{STATISTICS_DIR}/tex/metaphors_{gen}_describe_coarse.tex", "w") as file:
                 file.write(coarse_metaphors.describe().transpose().to_latex(index=True, float_format="%.2f"))
 
     ### General x metaphors
@@ -126,23 +171,36 @@ def descriptive_statistics(annotations, no_dfma=False):
 
     ### Write files
     if no_dfma:
-        with open(f"{STATISTICS_DIR}/metaphors_genversion_fine_nodfma.tex", "w") as file:
+        with open(f"{STATISTICS_DIR}/tex/metaphors_genversion_fine_nodfma.tex", "w") as file:
             file.write(metaphors_genversion_fine.to_latex(index=True, float_format="%.2f"))
-        with open(f"{STATISTICS_DIR}/metaphors_genversion_coarse_nodfma.tex", "w") as file:
+        with open(f"{STATISTICS_DIR}/tex/metaphors_genversion_coarse_nodfma.tex", "w") as file:
             file.write(metaphors_genversion_coarse.to_latex(index=True, float_format="%.2f"))
-        with open(f"{STATISTICS_DIR}/conventionality_genversion_nodfma.tex", "w") as file:
+        with open(f"{STATISTICS_DIR}/tex/conventionality_genversion_nodfma.tex", "w") as file:
             file.write(conventionality_genversion.to_latex(index=True, float_format="%.2f"))
     else:
-        with open(f"{STATISTICS_DIR}/metaphors_genversion_fine.tex", "w") as file:
+        with open(f"{STATISTICS_DIR}/tex/metaphors_genversion_fine.tex", "w") as file:
             file.write(metaphors_genversion_fine.to_latex(index=True, float_format="%.2f"))
-        with open(f"{STATISTICS_DIR}/metaphors_genversion_coarse.tex", "w") as file:
+        with open(f"{STATISTICS_DIR}/tex/metaphors_genversion_coarse.tex", "w") as file:
             file.write(metaphors_genversion_coarse.to_latex(index=True, float_format="%.2f"))
-        with open(f"{STATISTICS_DIR}/conventionality_genversion.tex", "w") as file:
+        with open(f"{STATISTICS_DIR}/tex/conventionality_genversion.tex", "w") as file:
             file.write(conventionality_genversion.to_latex(index=True, float_format="%.2f"))
 
 
 
-def prepare_counts_across_docs(annotations, write_file=False, no_dfma=False):
+def prepare_counts_across_docs(annotations, write_file=False, no_dfma=True):
+    """
+    annotations : pandas Dataframe.
+        Pandas dataframe containing annotated metaphors
+        and conventionality.
+    write_file (optional) : Boolean.
+        Whether to write the results to file. Default is False.
+    no_dfma (optional) : Boolean.
+        Whether to include or discard the category DFMA.
+        Default is True (= DFMA discarded).
+    -------------------------
+    Provides descriptive statistics for metaphors and conventionality
+    and writes them to TEX files.
+    """
     coarse_result_dict, fine_result_dict = {}, {}
     if no_dfma:
         annotations = annotations[annotations["metaphor"]!="DFMA"]
@@ -189,7 +247,14 @@ def prepare_counts_across_docs(annotations, write_file=False, no_dfma=False):
                 json.dump(coarse_result_dict, out, ensure_ascii=False, indent=3)           
     return coarse_result_dict, fine_result_dict
 
-def visualize_across_docs(no_dfma=False):
+def visualize_across_docs(no_dfma=True):
+    """
+    no_dfma (optional) : Boolean.
+        Whether to include the category DFMA or not. Default is True.
+    ---------------------------
+    Creates scatter plots showing the number of metaphors across
+    the number of lexical units.
+    """
     if no_dfma:
         with open(f"{STATISTICS_DIR}/fine_counts_doc_nodfma.json", "r", encoding="utf8") as inp:
             fine_data = json.load(inp)
@@ -270,7 +335,16 @@ def visualize_across_docs(no_dfma=False):
         plt.show()
 
 
-def independent_t_test(annotations, no_dfma=False):
+def independent_t_test(annotations, no_dfma=True):
+    """
+    annotations : pandas Dataframe.
+        Pandas dataframe containing annotated metaphors
+        and conventionality. 
+    no_dfma (optional) : Boolean.
+        Whether to include the category DFMA or not. Default is True.
+    ---------------------------
+    Conducts an independent t test and writes the results to files.
+    """
     generations = ["human", "gpt3-5", "gpt4o"]
     fine_data, coarse_data = {}, {}
     if no_dfma:
@@ -302,8 +376,6 @@ def independent_t_test(annotations, no_dfma=False):
     coarse_df = pd.DataFrame(coarse_data)
     n = 10
 
-    print(fine_df)
-    print(coarse_df)
     fine_results, coarse_results = {}, {} 
     for metaphor in fine_df["metaphor"]:
         mean_diff_3_5 = fine_df.loc[fine_df["metaphor"] == metaphor, "mean_human"].values - fine_df.loc[fine_df["metaphor"] == metaphor, "mean_gpt3-5"].values
@@ -334,17 +406,27 @@ def independent_t_test(annotations, no_dfma=False):
         coarse_results[f"{metaphor}_human_vs_gpt4o"] = {"t_stat": t_stat_4o[0], "p_val": p_val_4o[0]}
 
     if no_dfma:
-        with open(f"{STATISTICS_DIR}/independent_t-test_p_values_coarse_nodfma.json", "w", encoding="utf8") as out:
+        with open(f"{STATISTICS_DIR}/inferential/independent_t-test_p_values_coarse_nodfma.json", "w", encoding="utf8") as out:
             json.dump(coarse_results, out, ensure_ascii=False, indent=3)
-        with open(f"{STATISTICS_DIR}/independent_t-test_p_values_fine_nodfma.json", "w", encoding="utf8") as out:
+        with open(f"{STATISTICS_DIR}/inferential/independent_t-test_p_values_fine_nodfma.json", "w", encoding="utf8") as out:
             json.dump(fine_results, out, ensure_ascii=False, indent=3)
     else:
-        with open(f"{STATISTICS_DIR}/independent_t-test_p_values_coarse.json", "w", encoding="utf8") as out:
+        with open(f"{STATISTICS_DIR}/inferential/independent_t-test_p_values_coarse.json", "w", encoding="utf8") as out:
             json.dump(coarse_results, out, ensure_ascii=False, indent=3)
-        with open(f"{STATISTICS_DIR}/independent_t-test_p_values_fine.json", "w", encoding="utf8") as out:
+        with open(f"{STATISTICS_DIR}/inferential/independent_t-test_p_values_fine.json", "w", encoding="utf8") as out:
             json.dump(fine_results, out, ensure_ascii=False, indent=3)
 
-def create_paired_data(annotations, no_dfma=False):
+def create_paired_data(annotations, no_dfma=True):
+    """
+    annotations : pandas Dataframe.
+        Pandas dataframe containing annotated metaphors
+        and conventionality. 
+    no_dfma (optional) : Boolean.
+        Whether to include the category DFMA or not. Default is True.
+    ---------------------------
+    Prepares the data for the paired t test and writes
+    it to file.
+    """
     generations = ["human", "gpt3-5", "gpt4o"]
     coarse_dfs, fine_dfs = [], []
     if no_dfma:
@@ -372,14 +454,20 @@ def create_paired_data(annotations, no_dfma=False):
         coarse_df.reset_index(drop=True, inplace=True)
         coarse_df.sort_values(by='url', inplace=True)
         if no_dfma:
-            coarse_df.to_csv(f"{DATA_DIR}/coarse_pairs_nodfma.csv", index=False)
-            fine_df.to_csv(f"{DATA_DIR}/fine_pairs_nodfma.csv", index=False)
+            coarse_df.to_csv(f"{STATISTICS_DIR}/coarse_pairs_nodfma.csv", index=False)
+            fine_df.to_csv(f"{STATISTICS_DIR}/fine_pairs_nodfma.csv", index=False)
         else:
-            coarse_df.to_csv(f"{DATA_DIR}/coarse_pairs.csv", index=False)
-            fine_df.to_csv(f"{DATA_DIR}/fine_pairs.csv", index=False)            
+            coarse_df.to_csv(f"{STATISTICS_DIR}/coarse_pairs.csv", index=False)
+            fine_df.to_csv(f"{STATISTICS_DIR}/fine_pairs.csv", index=False)            
 
 
-def paired_tests(no_dfma=False):
+def paired_tests(no_dfma=True):
+    """
+    no_dfma (optional) : Boolean.
+        Whether to include the category DFMA or not. Default is True.
+    ---------------------------
+    Conducts a paired t test and writes the results to files.
+    """
     if no_dfma:
         coarse_df, fine_df = pd.read_csv(f"{DATA_DIR}/coarse_pairs_nodfma.csv"), pd.read_csv(f"{DATA_DIR}/fine_pairs_nodfma.csv")
     else: 
@@ -434,17 +522,27 @@ def paired_tests(no_dfma=False):
                                "paired_t_test": {"p_value": h_gpt4o_p_tvalue, "t_stat": h_gpt4o_tstat}
                                 }}
     if no_dfma:
-        with open(f"{STATISTICS_DIR}/paired_tests_coarse_nodfma.json", "w", encoding="utf8") as out:
+        with open(f"{STATISTICS_DIR}/inferential/paired_tests_coarse_nodfma.json", "w", encoding="utf8") as out:
             json.dump(coarse_results, out, ensure_ascii=False, indent=3)
-        with open(f"{STATISTICS_DIR}/paired_tests_fine_nodfma.json", "w", encoding="utf8") as out:
+        with open(f"{STATISTICS_DIR}/inferential/paired_tests_fine_nodfma.json", "w", encoding="utf8") as out:
             json.dump(fine_results, out, ensure_ascii=False, indent=3)
     else:
-        with open(f"{STATISTICS_DIR}/paired_tests_coarse.json", "w", encoding="utf8") as out:
+        with open(f"{STATISTICS_DIR}/inferential/paired_tests_coarse.json", "w", encoding="utf8") as out:
             json.dump(coarse_results, out, ensure_ascii=False, indent=3)
-        with open(f"{STATISTICS_DIR}/paired_tests_fine.json", "w", encoding="utf8") as out:
+        with open(f"{STATISTICS_DIR}/inferential/paired_tests_fine.json", "w", encoding="utf8") as out:
             json.dump(fine_results, out, ensure_ascii=False, indent=3)  
 
-def describe_pos(annotations, no_dfma=False):
+def describe_pos(annotations, no_dfma=True):
+    """
+    annotations : pandas Dataframe.
+        Pandas dataframe containing annotated metaphors
+        and conventionality. 
+    no_dfma (optional) : Boolean.
+        Whether to include the category DFMA or not. Default is True.
+    ---------------------------
+    Provides descriptive statistics for POS-Tags and writes the
+    results to file.
+    """
     if no_dfma:
         annotations = annotations[annotations["metaphor"]!= "DFMA"]
     pos_df = annotations[~annotations["metaphor"].isin(["_", "O", "KOMPL"])]
@@ -455,14 +553,17 @@ def describe_pos(annotations, no_dfma=False):
     merged_df = merged_df.groupby(['gen_version', 'pos']).size().unstack(fill_value=0).transpose()
     merged_df = add_relative_freq_genversion(merged_df)
     if no_dfma:
-        with open(f"{STATISTICS_DIR}/pos_nodfma.tex", "w") as file:
+        with open(f"{STATISTICS_DIR}/tex/pos_nodfma.tex", "w") as file:
             file.write(merged_df.to_latex(index=True, float_format="%.2f"))
     else:
-        with open(f"{STATISTICS_DIR}/pos.tex", "w") as file:
+        with open(f"{STATISTICS_DIR}/tex/pos.tex", "w") as file:
             file.write(merged_df.to_latex(index=True, float_format="%.2f"))
 
 
 def create_histograms():
+    """
+    Creates histograms for paired articles.
+    """
     coarse = pd.read_csv(f"{DATA_DIR}/coarse_pairs_nodfma.csv", encoding="utf8")
     fine = pd.read_csv(f"{DATA_DIR}/fine_pairs_nodfma.csv", encoding="utf8")
     coarse["url"] = [url.replace("_1a","") for url in coarse["url"]]
@@ -552,7 +653,7 @@ if __name__ == '__main__':
     all_annotations = pd.read_csv(f"{DATA_DIR}/my_final_dataset_metaphors.csv", encoding="utf8")
     mflags = pd.read_csv(f"{DATA_DIR}/mflag_dataset.csv", encoding="utf8")
     descriptive_statistics(all_annotations, no_dfma=True)
-    describe_pos(all_annotations)
+    describe_pos(all_annotations, no_dfma=False)
     describe_articles()
 
     #### Descriptive Statistics: Visualization
@@ -562,7 +663,7 @@ if __name__ == '__main__':
 
     #### Inferential Statistics
     independent_t_test(all_annotations, no_dfma=True)
-    create_paired_data(all_annotations, no_dfma="True")
+    create_paired_data(all_annotations, no_dfma=True)
     paired_tests(no_dfma=True)
 
     
