@@ -40,7 +40,7 @@ def create_all_articles_json():
         tokens = [token for token in doc]
         data[url] = {"text" : text, "title": title, "summary": sum, "date" : date, "topic" : topic, "word_count": len(tokens)}
     df = pd.DataFrame(data)
-    df.to_json(f"{JSON_DATA_DIR}/all_articles.json", force_ascii=False)
+    df.to_json(f"{JSON_DATA_DIR}/all_articles.json", force_ascii=False, indent=4)
 
 def choose_sample_randomly(no_sample=100, write_to_file=False):
     """
@@ -58,7 +58,8 @@ def choose_sample_randomly(no_sample=100, write_to_file=False):
     list_of_samples = list(df.keys())
     random.shuffle(list_of_samples)
     if write_to_file:
-        for i, key in enumerate(list_of_samples):
+        i = 0
+        for key in list_of_samples:
             if i >= no_sample:
                 break
             else:
@@ -71,8 +72,10 @@ def choose_sample_randomly(no_sample=100, write_to_file=False):
                             continue
                         else:
                             sample_data[key] = {"text" : text, "title": title, "summary": summary, "date" : date, "topic" : topic, "word_count" : len(tokens)}
+                            i += 1
+                            print(i)
         sample_df = pd.DataFrame(sample_data)
-        sample_df.to_json(f"{JSON_DATA_DIR}/human_{str(no_sample)}n.json", force_ascii=False)          
+        sample_df.to_json(f"{JSON_DATA_DIR}/human_{str(no_sample)}n.json", force_ascii=False, indent=4)          
     return list_of_samples
 
 
@@ -255,22 +258,12 @@ if __name__ == '__main__':
 
     #### Create a JSON file containing 100 random articles with topic 'politik' from reciTAL/mlsum
     create_all_articles_json()
-    choose_sample_randomly("all_articles.json", no_sample=100, write_to_file=True)
+    choose_sample_randomly(no_sample=100, write_to_file=True)
     
-    #### Set client
-    client = OpenAI()
+    # #### Set client
+    # client = OpenAI()
 
-    #### Generate prompt data: Attention - not possible without a fee!
-    df = pd.read_json(f"{JSON_DATA_DIR}/human_100n.json")
-    iterate_prompts(prompts, "gpt-3.5-turbo-0125", df, breaking_point=100)
-    iterate_prompts(prompts, "gpt-4o-2024-05-13", df, breaking_point=100)
-
-    #### Create dfs containing similarity scores
-    gpt3_df = join_similarities("filtered_gpt-3.5-turbo-0125_100n_170+words.csv", "gpt-3.5-turbo-0125_100n_170+words_similarities.json")
-    gpt4_df = join_similarities("filtered_gpt-4o-2024-05-13_100n.csv", "gpt-4o-2024-05-13_100n_similarities.json")
-    sorted_df = get_best_article_df(gpt3_df, gpt4_df)
-    
-    ### Choose 10 best articles for each generation type and create a unique ID and mapping file
-    create_gpt_text_files(sorted_df, gpt3_df, "gpt-3.5-turbo-0125")
-    create_gpt_text_files(sorted_df, gpt4_df, "gpt-4o-2024-05-13")
-    create_human_text_files("mapping_gpt-3.5-turbo-0125.csv", "human_100n.json")
+    # #### Generate prompt data: Attention - not possible without a fee!
+    # df = pd.read_json(f"{JSON_DATA_DIR}/human_100n.json")
+    # iterate_prompts(prompts, "gpt-3.5-turbo-0125", df, breaking_point=100)
+    # iterate_prompts(prompts, "gpt-4o-2024-05-13", df, breaking_point=100)
