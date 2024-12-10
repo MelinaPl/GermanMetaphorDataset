@@ -28,7 +28,7 @@ Please clone this repository and run the following commands:
 ```
 $ conda create -n env python=3.10
 $ conda activate env
-$ pip install requirements.txt
+$ pip install -r requirements.txt
 ```
 
 ### Collect data
