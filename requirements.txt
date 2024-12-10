@@ -4,7 +4,7 @@ langdetect==1.0.9
 matplotlib==3.9.3
 networkx==3.3
 nltk==3.8.1
-numpy==2.2.0
+numpy==1.26.3
 openai==1.57.1
 pandas==2.2.3
 scikit_learn==1.6.0
