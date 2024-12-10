@@ -29,6 +29,8 @@ Please clone this repository and run the following commands:
 $ conda create -n env python=3.10
 $ conda activate env
 $ pip install -r requirements.txt
+$ python -m spacy download de_core_news_sm
+$ python -m spacy download de_core_news_lg
 ```
 
 ### Collect data
