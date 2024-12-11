@@ -10,7 +10,7 @@ from pathlib import Path
 
 """
 This script is used to process the chosen text files of gpt3-5, gpt4o and humans
-and converts them to uima-cas files containing automacially assigned POS-tags. The 
+and converts them to uima-cas files containing automatically assigned POS-tags. The 
 resulting files can then be used to import them into INCEpTION.
 """
 
