@@ -18,6 +18,13 @@ This script is used to evaluate the data prompted using six different prompts
 to choose the 'best' prompt for further work. 
 """
 
+#### Set paths
+REPO_DIR = str(Path().resolve().parents[0])
+DATA_DIR = os.path.join(REPO_DIR, "data")
+JSON_DATA_DIR = os.path.join(DATA_DIR, "json_files")
+PROMPT_DATA_DIR = os.path.join(REPO_DIR, "prompt_data")
+MAPPING_DIR = os.path.join(DATA_DIR, "mapping")
+
 #### Prompts to be tested
 
 prompts = {}
@@ -246,12 +253,6 @@ def create_human_text_files(mapping_file, human_json):
 
 
 if __name__ == '__main__':
-    #### Set paths
-    REPO_DIR = str(Path().resolve().parents[0])
-    DATA_DIR = os.path.join(REPO_DIR, "data")
-    JSON_DATA_DIR = os.path.join(DATA_DIR, "json_files")
-    PROMPT_DATA_DIR = os.path.join(REPO_DIR, "prompt_data")
-    MAPPING_DIR = os.path.join(DATA_DIR, "mapping")
 
     #### Load spacy
     nlp = spacy.load("de_core_news_sm")
@@ -260,10 +261,10 @@ if __name__ == '__main__':
     create_all_articles_json()
     choose_sample_randomly(no_sample=100, write_to_file=True)
     
-    # #### Set client
-    # client = OpenAI()
+    #### Set client
+    client = OpenAI()
 
-    # #### Generate prompt data: Attention - not possible without a fee!
-    # df = pd.read_json(f"{JSON_DATA_DIR}/human_100n.json")
-    # iterate_prompts(prompts, "gpt-3.5-turbo-0125", df, breaking_point=100)
-    # iterate_prompts(prompts, "gpt-4o-2024-05-13", df, breaking_point=100)
+    #### Generate prompt data: Attention - not possible without a fee!
+    df = pd.read_json(f"{JSON_DATA_DIR}/human_100n.json")
+    iterate_prompts(prompts, "gpt-3.5-turbo-0125", df, breaking_point=100)
+    iterate_prompts(prompts, "gpt-4o-2024-05-13", df, breaking_point=100)
