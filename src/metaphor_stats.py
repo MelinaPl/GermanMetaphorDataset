@@ -469,9 +469,9 @@ def paired_tests(no_dfma=True):
     Conducts a paired t test and writes the results to files.
     """
     if no_dfma:
-        coarse_df, fine_df = pd.read_csv(f"{DATA_DIR}/coarse_pairs_nodfma.csv"), pd.read_csv(f"{DATA_DIR}/fine_pairs_nodfma.csv")
+        coarse_df, fine_df = pd.read_csv(f"{STATISTICS_DIR}/coarse_pairs_nodfma.csv"), pd.read_csv(f"{STATISTICS_DIR}/fine_pairs_nodfma.csv")
     else: 
-        coarse_df, fine_df = pd.read_csv(f"{DATA_DIR}/coarse_pairs.csv"), pd.read_csv(f"{DATA_DIR}/fine_pairs.csv")
+        coarse_df, fine_df = pd.read_csv(f"{STATISTICS_DIR}/coarse_pairs.csv"), pd.read_csv(f"{STATISTICS_DIR}/fine_pairs.csv")
     coarse_results, fine_results = {}, {}
     if no_dfma:
         cat_list_coarse, cat_list_fine = ["METAPHOR", "O"], ["MRW", "PERS", "KOMPL", "WIDLII", "O"]
@@ -564,8 +564,8 @@ def create_histograms():
     """
     Creates histograms for paired articles.
     """
-    coarse = pd.read_csv(f"{DATA_DIR}/coarse_pairs_nodfma.csv", encoding="utf8")
-    fine = pd.read_csv(f"{DATA_DIR}/fine_pairs_nodfma.csv", encoding="utf8")
+    coarse = pd.read_csv(f"{STATISTICS_DIR}/coarse_pairs_nodfma.csv", encoding="utf8")
+    fine = pd.read_csv(f"{STATISTICS_DIR}/fine_pairs_nodfma.csv", encoding="utf8")
     coarse["url"] = [url.replace("_1a","") for url in coarse["url"]]
     fine["url"] = [url.replace("_1a","") for url in fine["url"]]
     unique_urls = list(set(coarse["url"]))
@@ -650,7 +650,7 @@ if __name__ == '__main__':
     nlp = spacy.load("de_core_news_md")
 
     #### Descriptive Statistics: Tables
-    all_annotations = pd.read_csv(f"{DATA_DIR}/my_final_dataset_metaphors.csv", encoding="utf8")
+    all_annotations = pd.read_csv(f"{DATA_DIR}/metaphor_dataset.csv", encoding="utf8")
     mflags = pd.read_csv(f"{DATA_DIR}/mflag_dataset.csv", encoding="utf8")
     descriptive_statistics(all_annotations, no_dfma=True)
     describe_pos(all_annotations, no_dfma=False)
