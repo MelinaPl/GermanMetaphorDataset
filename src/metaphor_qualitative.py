@@ -346,7 +346,8 @@ if __name__ == '__main__':
     nlp = spacy.load("de_core_news_md")
 
     #### Qualitative analysis
-    all_annotations = pd.read_csv(f"{DATA_DIR}/my_final_dataset_metaphors.csv", encoding="utf8")
+    all_annotations = pd.read_csv(f"{DATA_DIR}/metaphor_dataset.csv", encoding="utf8")
+    print(all_annotations)
     frequency_main(all_annotations)
 
     #### Graph
