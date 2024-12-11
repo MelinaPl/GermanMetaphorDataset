@@ -11,6 +11,7 @@ import numpy as np
 from collections import Counter
 from langdetect import detect
 from tqdm import tqdm
+from collect_data import join_similarities, get_best_article_df, create_gpt_text_files, create_human_text_files
 
 """
 This script processes the prompted data and filters GPT-generated articles 
@@ -300,3 +301,13 @@ if __name__ == '__main__':
 
     #### Print similarity scores for both models across prompts
     get_overall_similarity_statistics("gpt-4o-2024-05-13_100n.csv", "gpt-3.5-turbo-0125_100n_170+words.csv")
+
+    #### Create dfs containing similarity scores
+    gpt3_df = join_similarities("filtered_gpt-3.5-turbo-0125_100n_170+words.csv", "gpt-3.5-turbo-0125_100n_170+words_similarities.json")
+    gpt4_df = join_similarities("filtered_gpt-4o-2024-05-13_100n.csv", "gpt-4o-2024-05-13_100n_similarities.json")
+    sorted_df = get_best_article_df(gpt3_df, gpt4_df)
+    
+    ### Choose 10 best articles for each generation type and create a unique ID and mapping file
+    create_gpt_text_files(sorted_df, gpt3_df, "gpt-3.5-turbo-0125")
+    create_gpt_text_files(sorted_df, gpt4_df, "gpt-4o-2024-05-13")
+    create_human_text_files("mapping_gpt-3.5-turbo-0125.csv", "human_100n.json")
