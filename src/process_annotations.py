@@ -344,4 +344,12 @@ if __name__ == '__main__':
         combined_mflag_df = pd.concat(all_mflags, ignore_index=True)
         combined_mflag_df.to_csv(f"{DATA_DIR}/mflag_dataset.csv", encoding="utf8")
 
+    """ 
+    Attention! If you try to recreate the results without annotating the data
+    by yourself, you might run into an error at this point. This is due to the mapping files,
+    which now contain new unique ids (I did not set a seed) while the annotation files
+    still have the old unique ids. If you still want to run the code, you need to use the old 
+    mapping scripts which you can download from this GitHub repository.
+    """
+
         
