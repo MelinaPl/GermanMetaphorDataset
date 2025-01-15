@@ -466,7 +466,8 @@ def paired_tests(no_dfma=True):
     no_dfma (optional) : Boolean.
         Whether to include the category DFMA or not. Default is True.
     ---------------------------
-    Conducts a paired t test and writes the results to files.
+    Conducts a paired t test and wilcoxon signed rank test 
+    and writes the results to files.
     """
     if no_dfma:
         coarse_df, fine_df = pd.read_csv(f"{STATISTICS_DIR}/coarse_pairs_nodfma.csv"), pd.read_csv(f"{STATISTICS_DIR}/fine_pairs_nodfma.csv")
@@ -481,14 +482,21 @@ def paired_tests(no_dfma=True):
         print(f"Category: {cat}")
         gpt35 = coarse_df[coarse_df["gen_type"]=="gpt3-5"]
         gpt35 = gpt35[cat]
+        gpt35.reset_index(drop=True, inplace=True)
         human = coarse_df[coarse_df["gen_type"]=="human"]
         human = human[cat]
+        human.reset_index(drop=True, inplace=True)
         gpt4o = coarse_df[coarse_df["gen_type"]=="gpt4o"]
         gpt4o = gpt4o[cat]
+        gpt4o.reset_index(drop=True, inplace=True)
+
         h_gpt35_stat, h_gpt35_p_value = wilcoxon(human, gpt35)
         h_gpt4o_stat, h_gpt4o_p_value = wilcoxon(human, gpt4o)
+        wilcoxon_gpts_stat, wilcoxon_gpts_p_value = wilcoxon(gpt35, gpt4o)
         h_gpt35_tstat, h_gpt35_p_tvalue = ttest_rel(human, gpt35)
         h_gpt4o_tstat, h_gpt4o_p_tvalue = ttest_rel(human, gpt4o)
+        ttest_gpts_stat, ttest_gpts_p_value = ttest_rel(gpt35, gpt4o)
+
         coarse_results[cat] = {"human_vs_gpt3-5": 
                                {"wilcoxon": 
                                 {"p_value": h_gpt35_p_value, "t_stat": h_gpt35_stat}, 
@@ -498,19 +506,29 @@ def paired_tests(no_dfma=True):
                                 {"wilcoxon": 
                                  {"p_value": h_gpt4o_p_value, "t_stat": h_gpt4o_stat}, 
                                "paired_t_test": {"p_value": h_gpt4o_p_tvalue, "t_stat": h_gpt4o_tstat}
-                                }}
+                                },
+                                "gpts":
+                                {"wilcoxon":
+                                 {"p_value":wilcoxon_gpts_p_value, "t_stat": wilcoxon_gpts_stat},
+                                 "paired_t_test": {"p_value": ttest_gpts_p_value, "t_stat": ttest_gpts_stat}}
+                                }
     for cat in cat_list_fine:
         print(f"Category: {cat}")
         gpt35 = fine_df[fine_df["gen_type"]=="gpt3-5"]
         gpt35 = gpt35[cat]
+        gpt35.reset_index(drop=True, inplace=True)
         human = fine_df[fine_df["gen_type"]=="human"]
         human = human[cat]
+        human.reset_index(drop=True, inplace=True)
         gpt4o = fine_df[fine_df["gen_type"]=="gpt4o"]
         gpt4o = gpt4o[cat]
+        gpt4o.reset_index(drop=True, inplace=True)
         h_gpt35_stat, h_gpt35_p_value = wilcoxon(human, gpt35)
         h_gpt4o_stat, h_gpt4o_p_value = wilcoxon(human, gpt4o)
+        wilcoxon_gpts_stat, wilcoxon_gpts_p_value = wilcoxon(gpt35, gpt4o)
         h_gpt35_tstat, h_gpt35_p_tvalue = ttest_rel(human, gpt35)
         h_gpt4o_tstat, h_gpt4o_p_tvalue = ttest_rel(human, gpt4o)
+        ttest_gpts_stat, ttest_gpts_p_value = ttest_rel(gpt35, gpt4o)
         fine_results[cat] = {"human_vs_gpt3-5": 
                                {"wilcoxon": 
                                 {"p_value": h_gpt35_p_value, "t_stat": h_gpt35_stat}, 
@@ -520,7 +538,13 @@ def paired_tests(no_dfma=True):
                                 {"wilcoxon": 
                                  {"p_value": h_gpt4o_p_value, "t_stat": h_gpt4o_stat}, 
                                "paired_t_test": {"p_value": h_gpt4o_p_tvalue, "t_stat": h_gpt4o_tstat}
-                                }}
+                                },
+                                "gpts":
+                                {"wilcoxon":
+                                 {"p_value": wilcoxon_gpts_p_value, "t_stat": wilcoxon_gpts_stat},
+                                 "paired_t_test": {"p_value": ttest_gpts_p_value, "t_stat": ttest_gpts_stat}
+                                }
+                            }
     if no_dfma:
         with open(f"{STATISTICS_DIR}/inferential/paired_tests_coarse_nodfma.json", "w", encoding="utf8") as out:
             json.dump(coarse_results, out, ensure_ascii=False, indent=3)
@@ -650,20 +674,20 @@ if __name__ == '__main__':
     nlp = spacy.load("de_core_news_md")
 
     #### Descriptive Statistics: Tables
-    all_annotations = pd.read_csv(f"{DATA_DIR}/metaphor_dataset.csv", encoding="utf8")
-    mflags = pd.read_csv(f"{DATA_DIR}/mflag_dataset.csv", encoding="utf8")
-    descriptive_statistics(all_annotations, no_dfma=True)
-    describe_pos(all_annotations, no_dfma=False)
-    describe_articles()
+    # all_annotations = pd.read_csv(f"{DATA_DIR}/metaphor_dataset.csv", encoding="utf8")
+    # mflags = pd.read_csv(f"{DATA_DIR}/mflag_dataset.csv", encoding="utf8")
+    # descriptive_statistics(all_annotations, no_dfma=True)
+    # describe_pos(all_annotations, no_dfma=False)
+    # describe_articles()
 
-    #### Descriptive Statistics: Visualization
-    prepare_counts_across_docs(all_annotations, write_file=True, no_dfma=True)
-    visualize_across_docs()
-    create_histograms()
+    # #### Descriptive Statistics: Visualization
+    # prepare_counts_across_docs(all_annotations, write_file=True, no_dfma=True)
+    # visualize_across_docs()
+    # create_histograms()
 
-    #### Inferential Statistics
-    independent_t_test(all_annotations, no_dfma=True)
-    create_paired_data(all_annotations, no_dfma=True)
+    # #### Inferential Statistics
+    # independent_t_test(all_annotations, no_dfma=True)
+    # create_paired_data(all_annotations, no_dfma=True)
     paired_tests(no_dfma=True)
 
     
