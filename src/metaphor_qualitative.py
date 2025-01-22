@@ -223,63 +223,6 @@ def unique_lemmas_tables():
                 out.write(word + "\n")
 
 
-def unique_lemma_frequency():
-    """
-    Calculates the relative frequencies of exclusively used lemmas
-    for each generation type. Saves results as a JSON file.
-    """
-    excl_files = [file for file in os.listdir(f"{QUALI_DIR}/exclusive_lemmas")]
-    excl_lemmas = {}
-    for file in excl_files:
-        filename = file.replace("exclusive_lemmas_","").replace(".txt", "")
-        with open(f"{QUALI_DIR}/exclusive_lemmas/{file}", "r", encoding="utf8") as inp:
-            data = inp.read()
-            data = data.split("\n")
-            data = data[:-1]
-        excl_lemmas[filename] = {"lemmas": data}
-    with open(f"{QUALI_DIR}/graph_lemmas.json", "r", encoding="utf8") as inp:
-        data = json.load(inp)   
-        generations = ["human", "gpt3-5", "gpt4o"]
-        results = {}
-        for gen in generations:
-            lemmas = data[gen]["lemmas"]
-            counts = data[gen]["counts"]
-            total = sum(counts)
-            freq = len(lemmas)/ total
-            if gen == "human":
-                gpt35_human = excl_lemmas["gpt35_human"]["lemmas"]
-                gpt4o_human = excl_lemmas["gpt4o_human"]["lemmas"]
-                human_all = excl_lemmas["used_by_all"]["lemmas"]
-                gpt35_human = round((len(gpt35_human)/len(lemmas))*100,2)
-                gpt4o_human = round((len(gpt4o_human)/len(lemmas))*100, 2)
-                human_all = round((len(human_all)/len(lemmas))*100,2)
-                exclusive_human = round((len(excl_lemmas["human"]["lemmas"])/len(lemmas))*100,2)
-                results[gen] = {"unique_lemmas": round(freq*100, 2), "gpt35_human": gpt35_human,
-                                "gpt4o_human": gpt4o_human, "human_all": human_all, "exclusive_human": exclusive_human}
-            elif gen == "gpt3-5":
-                gpt35_human = excl_lemmas["gpt35_human"]["lemmas"]
-                gpts = excl_lemmas["gpts"]["lemmas"]
-                gpt35_all = excl_lemmas["used_by_all"]["lemmas"]
-                gpt35_human = round((len(gpt35_human)/len(lemmas))*100, 2)
-                gpts = round((len(gpts)/len(lemmas))*100, 2)
-                gpt35_all = round((len(gpt35_all)/len(lemmas))*100,2)
-                exclusive_gpt35 = round((len(excl_lemmas["gpt35"]["lemmas"])/len(lemmas))*100,2)
-                results[gen] = {"unique_lemmas": round(freq*100, 2), "gpt35_human": gpt35_human,
-                                "gpts": gpts, "gpt35_all": gpt35_all, "exclusive_gpt35":exclusive_gpt35}
-            else:
-                gpt4o_human = excl_lemmas["gpt4o_human"]["lemmas"]
-                gpts = excl_lemmas["gpts"]["lemmas"]
-                gpt4o_all = excl_lemmas["used_by_all"]["lemmas"]
-                gpt4o_human = round((len(gpt4o_human)/len(lemmas))*100,2)
-                gpts = round((len(gpts)/len(lemmas))*100, 2)
-                gpt4o_all = round((len(gpt4o_all)/len(lemmas))*100, 2)
-                exclusive_gpt4o = round((len(excl_lemmas["gpt4o"]["lemmas"])/len(lemmas))*100,2)
-                results[gen] = {"unique_lemmas": round(freq*100, 2), "gpt4o_human": gpt4o_human,
-                                "gpts": gpts, "gpt4o_all": gpt4o_all, "exclusive_gpt4o":exclusive_gpt4o}
-    with open(f"{QUALI_DIR}/unique_lemma_freq.json", "w", encoding="utf8") as out:
-        json.dump(results, out, ensure_ascii=False, indent=4)
-    print(results)
-
 def create_lemma_tables():
     """
     Creates tables with results and writes them to files.
@@ -335,6 +278,36 @@ def create_lemma_tables():
     merged_df = pd.concat([df_multi, df_compounds], axis=0)
     merged_df.to_latex(f"{QUALI_DIR}/tex/multilemmas_and_compounds.tex", index=False)
 
+def calculate_simple_LOS():
+    """
+    Calculates the lexical overlap score.
+    LOS: n / A+B-n
+    where n = overlapping lemmas, A = lemmas in source A, 
+    B = lemmas in source B
+    """
+    results = {}
+
+    with open(f"{QUALI_DIR}/graph_lemmas.json", "r", encoding="utf8") as inp:
+        data = json.load(inp)   
+        human_lemmas, gpt35_lemmas, gpt4o_lemmas = data["human"]["lemmas"], data["gpt3-5"]["lemmas"], data["gpt4o"]["lemmas"]
+        human_gpt35 = set(data["human"]["lemmas"]) | set(data["gpt3-5"]["lemmas"])
+        human_gpt35_overlap = set(data["human"]["lemmas"]) & set(data["gpt3-5"]["lemmas"])
+        human_gpt4o = set(data["human"]["lemmas"]) | set(data["gpt4o"]["lemmas"])
+        human_gpt4o_overlap = set(data["human"]["lemmas"]) & set(data["gpt4o"]["lemmas"])
+        gpt35_gpt4o = set(data["gpt4o"]["lemmas"]) | set(data["gpt3-5"]["lemmas"])
+        gpt35_gpt4o_overlap = set(data["gpt4o"]["lemmas"]) & set(data["gpt3-5"]["lemmas"])
+
+        los_human_gpt35 = len(human_gpt35_overlap)/ len(human_gpt35)
+        los_human_gpt4o = len(human_gpt4o_overlap)/ len(human_gpt4o)
+        los_gpt35_gpt4o = len(gpt35_gpt4o_overlap)/ len(gpt35_gpt4o)
+        results["human_gpt35"] = {"overlap": len(human_gpt35_overlap), "total_lemmas": len(human_gpt35), "los":los_human_gpt35}
+        results["human_gpt4o"] = {"overlap": len(human_gpt4o_overlap), "total_lemmas": len(human_gpt4o), "los":los_human_gpt4o}
+        results["gpts"] = {"overlap": len(gpt35_gpt4o_overlap), "total_lemmas": len(gpt35_gpt4o), "los":los_gpt35_gpt4o}
+        results["total_lemmas"] = {"humans": len(human_lemmas), "gpt35": len(gpt35_lemmas), "gpt4o": len(gpt4o_lemmas)}
+
+    with open(f"{QUALI_DIR}/simple_lexicon_overlap_score.json", "w", encoding="utf8") as out:
+        json.dump(results, out, ensure_ascii=False, indent=4)
+    print(results)
 
 if __name__ == '__main__':
     #### Set paths
@@ -356,5 +329,5 @@ if __name__ == '__main__':
 
     #### Exclusively used lemmas across generation types
     unique_lemmas_tables()
-    unique_lemma_frequency()
     create_lemma_tables()
+    calculate_simple_LOS()
