@@ -1,0 +1,22 @@
+{
+    "human_gpt35": {
+        "overlap": 43,
+        "total_lemmas": 238,
+        "los": 0.18067226890756302
+    },
+    "human_gpt4o": {
+        "overlap": 45,
+        "total_lemmas": 255,
+        "los": 0.17647058823529413
+    },
+    "gpts": {
+        "overlap": 63,
+        "total_lemmas": 246,
+        "los": 0.25609756097560976
+    },
+    "total_lemmas": {
+        "humans": 136,
+        "gpt35": 145,
+        "gpt4o": 164
+    }
+}
