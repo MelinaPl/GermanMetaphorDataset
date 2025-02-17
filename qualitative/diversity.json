@@ -1,0 +1,17 @@
+{
+    "human":{
+        "unique_lemmas":136.0,
+        "total_lemmas":166.0,
+        "diversity":0.8192771084
+    },
+    "gpt3-5":{
+        "unique_lemmas":145.0,
+        "total_lemmas":243.0,
+        "diversity":0.5967078189
+    },
+    "gpt4o":{
+        "unique_lemmas":164.0,
+        "total_lemmas":249.0,
+        "diversity":0.6586345382
+    }
+}
