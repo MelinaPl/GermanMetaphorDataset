@@ -309,6 +309,21 @@ def calculate_simple_LOS():
         json.dump(results, out, ensure_ascii=False, indent=4)
     print(results)
 
+def calculate_metaphor_diversity():
+    """
+    Calculates metaphor diversity by dividing the number of unique lemmas
+    by the number of total number of lemmas.
+    """
+    generations = ["human", "gpt3-5", "gpt4o"]
+    data = pd.read_json(f"{QUALI_DIR}/graph_lemmas.json", encoding="utf8")
+    results_dict = {}
+    for gen in generations:
+        unique_lemmas = data[f"{gen}"].lemmas
+        total_count = sum(data[f"{gen}"].counts)
+        results_dict[gen] = {"unique_lemmas": len(unique_lemmas), "total_lemmas": total_count, "diversity": len(unique_lemmas)/total_count}
+    results_df = pd.DataFrame(results_dict)
+    results_df.to_json(f"{QUALI_DIR}/diversity.json", indent=4) 
+
 if __name__ == '__main__':
     #### Set paths
     REPO_DIR = str(Path().resolve().parents[0])
@@ -323,7 +338,7 @@ if __name__ == '__main__':
     print(all_annotations)
     frequency_main(all_annotations)
 
-    #### Graph
+    # #### Graph
     create_graph_data(all_annotations)
     create_graph()
 
@@ -331,3 +346,6 @@ if __name__ == '__main__':
     unique_lemmas_tables()
     create_lemma_tables()
     calculate_simple_LOS()
+
+    #### Metaphor Diversity
+    calculate_metaphor_diversity()
